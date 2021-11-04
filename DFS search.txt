@@ -1,0 +1,8 @@
+intial state:
+1	2	3	
+4	0	5	
+6	7	8	
+run time = 92704 millisecond
+No result found after 100000 iterations.
+Maxinmum depth reached = 66122
+Number of expanded nodes: 100000

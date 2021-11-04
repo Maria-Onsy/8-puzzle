@@ -1,15 +1,14 @@
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.Scanner;
+
 
 
 public class main {
 
-	public static void main(String[] args) {
-		ArrayList<Integer> num = new ArrayList<>();
+	public static void main(String[] args) throws IOException {
+		/*ArrayList<Integer> num = new ArrayList<>();
 		num.add(0);
 		num.add(1);
 		num.add(2);
@@ -23,16 +22,70 @@ public class main {
 				k++;
 			}
 		}
-		
+		*/
 		//int [][] board = {{1,2,5},{3,4,0},{6,7,8}};
+		//int[][] board = {{6,7,2},{3,0,1},{8,5,4}};	
 	
 		
-		State parent = new State(board, null, 0,0);
+	//scan initial state
+		Scanner sc=new Scanner(System.in);
+		System.out.println("Enter the initial state.\n");
+		String brd = sc.nextLine();
+		brd.replaceAll(" ", "");
+		brd.replaceAll("\n", "");
+		while(brd.length() != 17) {
+			System.out.println("Error:Wrong initial state!\n");
+			System.out.println("Enter correct initial state.\n");
+			brd = sc.nextLine();
+		}
+		int [][] board = new int[3][3];
+		boolean corr = false;
+		while(!corr) {
+			int k=0;
+			boolean wrg = false;
+			ArrayList<Integer> avb = new ArrayList<>();
+			for(int i=0;i<9;i++) {
+				avb.add(i);
+			}
+			for(int i=0;i<3;i++) {
+				for(int j=0;j<3;j++) {
+					if((k%2 == 0)) {
+						int t = brd.charAt(k)-'0';
+						if(avb.contains(t)) {
+							board[i][j]= t;
+							avb.remove(avb.indexOf(t));
+						}
+						else {
+							System.out.println("Error:Wrong initial state!\n");
+							wrg = true;
+							break;
+						}
+					}
+					else {
+						j--;
+						if(brd.charAt(k)!=',') {
+							System.out.println("Error:Wrong initial state!\n");
+							wrg = true;
+							break;
+						}
+					}
+					k++;
+				}
+				if(wrg) {break;}
+			}
+			if(wrg) {
+				System.out.println("Enter correct initial state.\n");
+				brd = sc.nextLine();
+			}
+			else {corr = true;}
+		}
 		
-		System.out.println("parent");
-		printBoard(parent.getBoard());
-		System.out.println();
-		System.out.println();
+		
+		
+		//System.out.println("parent");
+		//printBoard(parent.getBoard());
+		//System.out.println();
+		//System.out.println();
 		
 		int [][] boardg = new int[3][3];
 		int kg=0;
@@ -76,27 +129,63 @@ public class main {
 		System.out.println(h);
 	*/
 		
-		//BFS tryBfs = new BFS();
-		SearchAlgorithms search = new SearchAlgorithms();
+		//BFS
+		SearchAlgorithms search = new SearchAlgorithms(100000);
 		long start = System.currentTimeMillis();
-		ArrayList<String> expanded = new ArrayList<String>(); 
-		State res = search.Asearch(parent, goal, expanded,'M');
+		State parentB = new State(board, null, 0,0);
+		ArrayList<String> Bexpanded = new ArrayList<String>(); 
+		State resB = search.BFSsearch(parentB, goal, Bexpanded);
 		long end = System.currentTimeMillis();
 		long runTime = end - start;
+		printResult("BFS search.txt", parentB, runTime, resB, Bexpanded, search.getCounter(),search.getSearchDepth());
 		
-		System.out.print("run time = ");
+		//DFS
+		start = System.currentTimeMillis();
+		State parentD = new State(board, null, 0,0);
+		ArrayList<String> Dexpanded = new ArrayList<String>(); 
+		State resD = search.DFSsearch(parentD, goal, Dexpanded);
+		end = System.currentTimeMillis();
+		runTime = end - start;
+		printResult("DFS search.txt", parentD, runTime, resD, Dexpanded, search.getCounter(),search.getSearchDepth());
+		
+		//A* using Manhatten distance
+		start = System.currentTimeMillis();
+		State parentM = new State(board, null, 0,0);
+		ArrayList<String> Mexpanded = new ArrayList<String>(); 
+		State resM = search.Asearch(parentM, goal, Mexpanded, 'M');
+		end = System.currentTimeMillis();
+		runTime = end - start;
+		printResult("A search(Manhattan).txt", parentM, runTime, resM, Mexpanded, search.getCounter(),search.getSearchDepth());
+		
+		//A* using Euclidean distance
+		start = System.currentTimeMillis();
+		State parentE = new State(board, null, 0,0);
+		ArrayList<String> Eexpanded = new ArrayList<String>(); 
+		State resE = search.Asearch(parentE, goal, Eexpanded,'E');
+		end = System.currentTimeMillis();
+		runTime = end - start;
+		printResult("A search(Euclidean).txt", parentE, runTime, resE, Eexpanded, search.getCounter(),search.getSearchDepth());
+		
+		System.out.println("The results are stored in files.");
+		
+/*      System.out.print("run time = ");
 		System.out.print(runTime);
 		System.out.println();
+		if(res != null) {
 		System.out.println("depth= "+ res.getDepth());
 		System.out.println("cost= "+ res.getDepth());
 		System.out.println("expanded nodes:");
-		printExpanded(expanded);
+		//printExpanded(expanded);
 		System.out.println();
 		System.out.println("path:");
-		printPath(res);
+		//printPath(res);
+		}
+		else {
+			System.out.println("Number of iterations: ");
+			System.out.println(search.getCounter());
+		}
 		
-		
-/*		ArrayList<State> children = parent.getChildren();
+		ArrayList<State> children = parent.getChildren();
 		for(int i=0;i<children.size();i++) {
 			System.out.println("child"+i);
 			printBoard(children.get(i).getBoard());
@@ -132,33 +221,43 @@ public class main {
 		
 
 	}
+
 	
-	public static void printBoard(int[][]arr) {
+	public static void printBoard(int[][]arr,FileWriter file) throws IOException {
 		for(int i=0;i<3;i++) {
 			for(int j=0;j<3;j++) {
-				System.out.print(arr[i][j]);
-				System.out.print("\t");
+				file.write(Integer.toString(arr[i][j]));
+				//System.out.print(arr[i][j]);
+				//System.out.print("\t");
+				file.write("\t");
 			}
-			System.out.println();
+			//System.out.println();
+			file.write("\n");
 		}
 	}
 	
-	public static void printExpanded(ArrayList<String> ex) {
+	
+	public static void printExpanded(ArrayList<String> ex, FileWriter file) throws IOException {
 		for(int i=0;i<ex.size();i++) {
-			System.out.println("node:");
+			//System.out.println("node:");
+			file.write("node "+i+" :\n");
 			String curr = ex.get(i);
 			for(int j=0;j<3;j++) {
 				for(int k=0;k<3;k++) {
-				System.out.print(curr.charAt(k+3*j));
-				System.out.print("\t");
+				//System.out.print(curr.charAt(k+3*j));
+				file.write(curr.charAt(k+3*j));
+				//System.out.print("\t");
+				file.write("\t");
 				}
-				System.out.println();
+				//System.out.println();
+				file.write("\n");
 			}
-			System.out.println();
+			//System.out.println();
+			file.write("\n");
 		}
 	}
 	
-    public static void printPath(State res) {
+    public static void printPath(State res,FileWriter file) throws IOException {
 		ArrayList<String> path = new ArrayList<String>();
 		path.add(res.toString());
 		while(res.getParent()!=null) {
@@ -166,18 +265,55 @@ public class main {
 			path.add(res.toString());
 		}
 		for(int i=path.size()-1;i>=0;i--) {
-			System.out.println("node:");
+			//System.out.println("node:");
+			file.write("node:\n");
 			String curr = path.get(i);
 			for(int j=0;j<3;j++) {
 				for(int k=0;k<3;k++) {
-				System.out.print(curr.charAt(k+3*j));
-				System.out.print("\t");
+				//System.out.print(curr.charAt(k+3*j));
+				file.write(curr.charAt(k+3*j));
+				//System.out.print("\t");
+				file.write("\t");
 				}
-				System.out.println();
+				//System.out.println();
+				file.write("\n");
 			}
-			System.out.println();
+			//System.out.println();
+			file.write("\n");
 		}
 		
 	}
+    
+    public static void printResult(String name,State parent, long runtime, State res, ArrayList<String> expanded, long counter, int depth) throws IOException {
+    	FileWriter file = new FileWriter(name);
+    	file.write("intial state:\n");
+    	printBoard(parent.getBoard(),file);
+    	file.write("run time = ");
+		file.write(Long.toString(runtime));
+		file.write(" millisecond\n");
+		if(res != null) {
+			file.write("Search depth= "+ depth+"\n");
+			file.write("cost= "+ res.getDepth()+"\n");
+			file.write("Number of expanded nodes: "+ expanded.size()+ "\n");
+			file.write("\n");
+			file.write("--------------------------------------------------------------------------------------");
+			file.write("\n");
+			file.write("path:\n");
+			printPath(res,file);
+			file.write("\n");
+			file.write("--------------------------------------------------------------------------------------");
+			file.write("\n");
+			file.write("expanded nodes:\n");
+			printExpanded(expanded,file);
+		}
+		else {
+			file.write("No result found after " + counter + " iterations.\n");
+			file.write("Maxinmum depth reached = "+ depth+"\n");
+			file.write("Number of expanded nodes: "+ expanded.size()+ "\n");
+		}
+		file.close();
+
+    	
+    }
 
 }
