@@ -154,6 +154,7 @@ public class main {
 		ArrayList<String> Mexpanded = new ArrayList<String>(); 
 		State resM = search.Asearch(parentM, goal, Mexpanded, 'M');
 		end = System.currentTimeMillis();
+		long counter1 = search.getCounter();
 		runTime = end - start;
 		printResult("A search(Manhattan).txt", parentM, runTime, resM, Mexpanded, search.getCounter(),search.getSearchDepth());
 		
@@ -163,10 +164,15 @@ public class main {
 		ArrayList<String> Eexpanded = new ArrayList<String>(); 
 		State resE = search.Asearch(parentE, goal, Eexpanded,'E');
 		end = System.currentTimeMillis();
+		long counter2 = search.getCounter();
 		runTime = end - start;
 		printResult("A search(Euclidean).txt", parentE, runTime, resE, Eexpanded, search.getCounter(),search.getSearchDepth());
 		
 		System.out.println("The results are stored in files.");
+		
+		//print the comparison between number of expanded nodes//
+		printcomparison("compare.txt",counter1, counter2);
+		System.out.println();
 		
 /*      System.out.print("run time = ");
 		System.out.print(runTime);
@@ -311,6 +317,20 @@ public class main {
 			file.write("Maxinmum depth reached = "+ depth+"\n");
 			file.write("Number of expanded nodes: "+ expanded.size()+ "\n");
 		}
+		file.close();
+
+    	
+    }
+	
+	public static void printcomparison(String name,long counter1, long counter2) throws IOException {
+    	FileWriter file = new FileWriter(name);
+    	file.write("Number of nodes expanded by Manhattan heuristic:  ");
+    	file.write(Long.toString(counter1+1));
+    	file.write("\n");
+    	file.write("Number of nodes expanded by Euclidean heuristic:  ");
+    	file.write(Long.toString(counter2+1));
+    	file.write("\n");
+	
 		file.close();
 
     	
